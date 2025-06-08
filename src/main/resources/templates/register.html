@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - AnimeTracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-collection-play"></i> AnimeTracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="bi bi-house-door"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/register"><i class="bi bi-person-plus"></i> Register</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4"><i class="bi bi-person-plus"></i> Create Account</h2>
+                        <div th:if="${registrationError}" class="alert alert-danger">
+                            <i class="bi bi-exclamation-circle"></i> <span th:text="${registrationError}">Registration failed.</span>
+                        </div>
+
+                        <form th:action="@{/register}" th:object="${user}" method="post" class="needs-validation" novalidate>
+                            <div class="mb-3">
+                                <label for="username" class="form-label"><i class="bi bi-person"></i> Username</label>
+                                <input type="text" class="form-control" id="username" th:field="*{username}" required
+                                       th:classappend="${#fields.hasErrors('username') || usernameError != null ? 'is-invalid' : ''}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">
+                                    <i class="bi bi-exclamation-circle"></i> Username error
+                                </div>
+                                <div class="invalid-feedback" th:if="${usernameError != null}" th:text="${usernameError}">
+                                    <i class="bi bi-exclamation-circle"></i> Username is already taken
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email</label>
+                                <input type="email" class="form-control" id="email" th:field="*{email}" required
+                                       th:classappend="${#fields.hasErrors('email') || emailError != null ? 'is-invalid' : ''}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
+                                    <i class="bi bi-exclamation-circle"></i> Email error
+                                </div>
+                                <div class="invalid-feedback" th:if="${emailError != null}" th:text="${emailError}">
+                                    <i class="bi bi-exclamation-circle"></i> Email is already registered
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label"><i class="bi bi-lock"></i> Password</label>
+                                <input type="password" class="form-control" id="password" th:field="*{password}"
+                                       required minlength="6"
+                                       th:classappend="${#fields.hasErrors('password') ? 'is-invalid' : ''}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                                    <i class="bi bi-exclamation-circle"></i> Password error
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> Password must be at least 6 characters long.
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-person-plus"></i> Register</button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <p class="mb-0">Already have an account? <a th:href="@{/login}">Login here</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">© 2025 AnimeTracker - Find your perfect anime database</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

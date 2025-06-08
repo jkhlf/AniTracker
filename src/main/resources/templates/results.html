@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Search Results - AnimeTracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">AnimeTracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="bi bi-house-door"></i> Home</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" th:href="@{/favorites}"><i class="bi bi-heart"></i> My Favorites</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" th:href="@{/favorite-lists}"><i class="bi bi-list-stars"></i> My Lists</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/login}"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/register}"><i class="bi bi-person-plus"></i> Register</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <span class="nav-link text-light">Welcome, <span th:text="${username}">User</span></span>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-link nav-link"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">        <h1 class="mb-4">Search Results</h1>
+        <div class="alert alert-info mb-4" th:if="${sentiment}">
+            <i class="bi bi-search"></i> Search query: <span th:text="${sentiment}" class="fst-italic"></span>
+        </div>
+
+        <div class="alert alert-warning mb-4" th:if="${animeList.isEmpty()}">
+            <i class="bi bi-exclamation-circle"></i> No anime recommendations found. Try a different search query.
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col" th:each="anime : ${animeList}">
+                <div class="card h-100 shadow anime-card">
+                    <img th:src="${anime.imageUrl}" class="card-img-top anime-image" th:alt="${anime.title}"
+                         style="height: 200px; object-fit: cover;"
+                         onerror="this.src='/images/no-image.jpg';">
+
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${anime.title}">Anime Title</h5>
+
+                        <div class="genres mb-3">
+                            <i class="bi bi-tag"></i> <small class="text-muted" th:text="${anime.genres}">Genres</small>
+                        </div>
+
+                        <p class="card-text synopsis" th:text="${#strings.abbreviate(anime.synopsis, 200)}">Synopsis</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                             <a th:href="${anime.urlMal}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right"></i> View on MAL
+                            </a>
+
+                            <button sec:authorize="isAuthenticated()"
+                                    th:class="${favorites != null && favorites[anime.id] ? 'btn btn-sm btn-danger favorite-btn' : 'btn btn-sm btn-outline-danger favorite-btn'}"
+                                    th:data-anime-id="${anime.id}"
+                                    th:data-is-favorite="${favorites != null && favorites[anime.id]}"
+                                    onclick="toggleFavorite(this)">
+                                <i class="bi bi-heart-fill"></i>
+                                <span th:text="${favorites != null && favorites[anime.id] ? 'Unfavorite' : 'Favorite'}"></span>
+                            </button>
+
+                            <a sec:authorize="!isAuthenticated()" class="btn btn-sm btn-outline-secondary" th:href="@{/login}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login to Favorite
+                            </a>
+                        </div>
+
+                        <!-- Add to List dropdown -->
+                        <div sec:authorize="isAuthenticated()" th:if="${userLists != null and not #lists.isEmpty(userLists)}" class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button"
+                                    th:id="'dropdownMenuButton' + ${anime.id}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-list-stars"></i> Add to List
+                            </button>
+                            <ul class="dropdown-menu" th:aria-labelledby="'dropdownMenuButton' + ${anime.id}">
+                                <li th:each="list : ${userLists}">
+                                    <a class="dropdown-item add-to-list-btn" href="#"
+                                       th:data-anime-id="${anime.id}"
+                                       th:data-list-id="${list.id}"
+                                       th:text="${list.name}">List Name</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="/" class="btn btn-primary">New Search</a>
+        </div>
+    </div>    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">© 2025 AnimeTracker - Track and organize your favorite anime</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleFavorite(button) {
+            const animeId = button.getAttribute('data-anime-id');
+            const isFavorite = button.getAttribute('data-is-favorite') === 'true';
+
+            const method = isFavorite ? 'DELETE' : 'POST';
+            const url = isFavorite ? `/api/favorites/remove?animeId=${animeId}` : `/api/favorites/add?animeId=${animeId}`;
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (isFavorite) {
+                        button.classList.remove('btn-danger');
+                        button.classList.add('btn-outline-danger');
+                        button.querySelector('span').textContent = 'Favorite';
+                        button.setAttribute('data-is-favorite', 'false');
+                    } else {
+                        button.classList.remove('btn-outline-danger');
+                        button.classList.add('btn-danger');
+                        button.querySelector('span').textContent = 'Unfavorite';
+                        button.setAttribute('data-is-favorite', 'true');
+                    }
+                } else {
+                    console.error('Error:', data.message);
+                    alert('There was an error processing your request.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error processing your request.');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const addToListButtons = document.querySelectorAll('.add-to-list-btn');
+
+            addToListButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const animeId = this.getAttribute('data-anime-id');
+                    const listId = this.getAttribute('data-list-id');
+                    const listName = this.textContent;
+
+                    fetch('/api/favorite-lists/add-anime', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `listId=${listId}&animeId=${animeId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`Anime added to "${listName}" successfully!`);
+                        } else {
+                            alert(data.message || 'Error adding anime to list');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('There was an error adding the anime to the list.');
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
